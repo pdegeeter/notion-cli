@@ -52,7 +52,14 @@ pub async fn run(cli: Cli) -> Result<()> {
     let mut notion = client::NotionClient::new(token)?;
     notion.set_dry_run(cli.dry_run);
 
-    run_with_client(cli.command, &notion, cli.page_size, cli.start_cursor.as_deref(), &format).await
+    run_with_client(
+        cli.command,
+        &notion,
+        cli.page_size,
+        cli.start_cursor.as_deref(),
+        &format,
+    )
+    .await
 }
 
 pub async fn run_with_client(
@@ -62,7 +69,6 @@ pub async fn run_with_client(
     start_cursor: Option<&str>,
     format: &OutputFormat,
 ) -> Result<()> {
-
     match &command {
         Commands::Init | Commands::Completions { .. } | Commands::Manpage => unreachable!(),
 
@@ -89,15 +95,11 @@ pub async fn run_with_client(
                 id,
                 file,
                 part_number,
-            } => {
-                commands::file_upload::send(notion, id, file, *part_number, format).await
-            }
+            } => commands::file_upload::send(notion, id, file, *part_number, format).await,
             FileUploadCommands::Complete { id } => {
                 commands::file_upload::complete(notion, id, format).await
             }
-            FileUploadCommands::Get { id } => {
-                commands::file_upload::get(notion, id, format).await
-            }
+            FileUploadCommands::Get { id } => commands::file_upload::get(notion, id, format).await,
             FileUploadCommands::List { status } => {
                 commands::file_upload::list(
                     notion,
@@ -108,12 +110,8 @@ pub async fn run_with_client(
                 )
                 .await
             }
-            FileUploadCommands::Upload {
-                file,
-                content_type,
-            } => {
-                commands::file_upload::upload(notion, file, content_type.as_deref(), format)
-                    .await
+            FileUploadCommands::Upload { file, content_type } => {
+                commands::file_upload::upload(notion, file, content_type.as_deref(), format).await
             }
         },
 
@@ -133,20 +131,15 @@ pub async fn run_with_client(
             UserCommands::Me => commands::user::me(notion, format).await,
             UserCommands::Get { id } => commands::user::get(notion, id, format).await,
             UserCommands::List => {
-                commands::user::list(
-                    notion,
-                    page_size,
-                    start_cursor,
-                    format,
-                )
-                .await
+                commands::user::list(notion, page_size, start_cursor, format).await
             }
         },
 
         Commands::Page(cmd) => match cmd {
-            PageCommands::Get { id, filter_properties } => {
-                commands::page::get(notion, id, filter_properties, format).await
-            }
+            PageCommands::Get {
+                id,
+                filter_properties,
+            } => commands::page::get(notion, id, filter_properties, format).await,
             PageCommands::Create {
                 parent,
                 properties,
@@ -192,22 +185,13 @@ pub async fn run_with_client(
         Commands::Block(cmd) => match cmd {
             BlockCommands::Get { id } => commands::block::get(notion, id, format).await,
             BlockCommands::Children { id } => {
-                commands::block::children(
-                    notion,
-                    id,
-                    page_size,
-                    start_cursor,
-                    format,
-                )
-                .await
+                commands::block::children(notion, id, page_size, start_cursor, format).await
             }
             BlockCommands::Append {
                 id,
                 children,
                 after,
-            } => {
-                commands::block::append(notion, id, children, after.as_deref(), format).await
-            }
+            } => commands::block::append(notion, id, children, after.as_deref(), format).await,
             BlockCommands::Update { id, data, archived } => {
                 commands::block::update(notion, id, data, *archived, format).await
             }
@@ -216,14 +200,7 @@ pub async fn run_with_client(
 
         Commands::Comment(cmd) => match cmd {
             CommentCommands::List { block_id } => {
-                commands::comment::list(
-                    notion,
-                    block_id,
-                    page_size,
-                    start_cursor,
-                    format,
-                )
-                .await
+                commands::comment::list(notion, block_id, page_size, start_cursor, format).await
             }
             CommentCommands::Create { page_id, text } => {
                 commands::comment::create(notion, page_id, text, format).await
@@ -241,23 +218,13 @@ pub async fn run_with_client(
                 title,
                 properties,
             } => {
-                commands::datasource::create(
-                    notion,
-                    parent,
-                    title,
-                    properties.as_deref(),
-                    format,
-                )
-                .await
+                commands::datasource::create(notion, parent, title, properties.as_deref(), format)
+                    .await
             }
             DsCommands::Update { id, data } => {
                 commands::datasource::update(notion, id, data, format).await
             }
-            DsCommands::Query {
-                id,
-                filter,
-                sorts,
-            } => {
+            DsCommands::Query { id, filter, sorts } => {
                 commands::datasource::query(
                     notion,
                     id,

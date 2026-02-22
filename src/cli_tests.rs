@@ -66,16 +66,17 @@ fn test_user_get() {
 #[test]
 fn test_user_list() {
     let cli = parse(&["notion", "user", "list"]);
-    assert!(matches!(
-        cli.command,
-        Commands::User(UserCommands::List)
-    ));
+    assert!(matches!(cli.command, Commands::User(UserCommands::List)));
 }
 
 #[test]
 fn test_page_get() {
     let cli = parse(&["notion", "page", "get", "page-abc"]);
-    if let Commands::Page(PageCommands::Get { id, filter_properties }) = &cli.command {
+    if let Commands::Page(PageCommands::Get {
+        id,
+        filter_properties,
+    }) = &cli.command
+    {
         assert_eq!(id, "page-abc");
         assert!(filter_properties.is_empty());
     } else {
@@ -86,10 +87,18 @@ fn test_page_get() {
 #[test]
 fn test_page_get_with_filter_properties() {
     let cli = parse(&[
-        "notion", "page", "get", "page-abc",
-        "--filter-properties", "title,status",
+        "notion",
+        "page",
+        "get",
+        "page-abc",
+        "--filter-properties",
+        "title,status",
     ]);
-    if let Commands::Page(PageCommands::Get { id, filter_properties }) = &cli.command {
+    if let Commands::Page(PageCommands::Get {
+        id,
+        filter_properties,
+    }) = &cli.command
+    {
         assert_eq!(id, "page-abc");
         assert_eq!(filter_properties, &["title", "status"]);
     } else {
@@ -330,12 +339,7 @@ fn test_ds_query_with_filter() {
         "--sorts",
         r#"[{"property":"Created","direction":"descending"}]"#,
     ]);
-    if let Commands::Ds(DsCommands::Query {
-        id,
-        filter,
-        sorts,
-    }) = &cli.command
-    {
+    if let Commands::Ds(DsCommands::Query { id, filter, sorts }) = &cli.command {
         assert_eq!(id, "ds-1");
         assert!(filter.is_some());
         assert!(sorts.is_some());
@@ -347,13 +351,7 @@ fn test_ds_query_with_filter() {
 #[test]
 fn test_ds_create() {
     let cli = parse(&[
-        "notion",
-        "ds",
-        "create",
-        "--parent",
-        "page-1",
-        "--title",
-        "My DB",
+        "notion", "ds", "create", "--parent", "page-1", "--title", "My DB",
     ]);
     if let Commands::Ds(DsCommands::Create {
         parent,
@@ -399,13 +397,7 @@ fn test_global_page_size() {
 
 #[test]
 fn test_global_start_cursor() {
-    let cli = parse(&[
-        "notion",
-        "--start-cursor",
-        "cursor-abc",
-        "user",
-        "list",
-    ]);
+    let cli = parse(&["notion", "--start-cursor", "cursor-abc", "user", "list"]);
     assert_eq!(cli.start_cursor.as_deref(), Some("cursor-abc"));
 }
 
@@ -587,11 +579,7 @@ fn test_file_upload_list_no_filter() {
 #[test]
 fn test_file_upload_upload() {
     let cli = parse(&["notion", "file-upload", "upload", "/tmp/test.png"]);
-    if let Commands::FileUpload(FileUploadCommands::Upload {
-        file,
-        content_type,
-    }) = &cli.command
-    {
+    if let Commands::FileUpload(FileUploadCommands::Upload { file, content_type }) = &cli.command {
         assert_eq!(file, &PathBuf::from("/tmp/test.png"));
         assert!(content_type.is_none());
     } else {
@@ -609,11 +597,7 @@ fn test_file_upload_upload_with_content_type() {
         "--content-type",
         "image/png",
     ]);
-    if let Commands::FileUpload(FileUploadCommands::Upload {
-        file,
-        content_type,
-    }) = &cli.command
-    {
+    if let Commands::FileUpload(FileUploadCommands::Upload { file, content_type }) = &cli.command {
         assert_eq!(file, &PathBuf::from("/tmp/test.png"));
         assert_eq!(content_type.as_deref(), Some("image/png"));
     } else {

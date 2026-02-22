@@ -36,10 +36,7 @@ fn test_config_serialization_roundtrip() {
     };
     let serialized = toml::to_string_pretty(&config).unwrap();
     let deserialized: Config = toml::from_str(&serialized).unwrap();
-    assert_eq!(
-        deserialized.api_token.as_deref(),
-        Some("ntn_secret_token")
-    );
+    assert_eq!(deserialized.api_token.as_deref(), Some("ntn_secret_token"));
 }
 
 #[test]

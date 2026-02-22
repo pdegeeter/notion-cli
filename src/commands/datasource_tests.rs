@@ -153,7 +153,16 @@ async fn test_query_with_filter_only() {
 
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
     let filter = r#"{"property":"Status","select":{"equals":"Done"}}"#;
-    let result = query(&client, "ds-1", Some(filter), None, None, None, &OutputFormat::Raw).await;
+    let result = query(
+        &client,
+        "ds-1",
+        Some(filter),
+        None,
+        None,
+        None,
+        &OutputFormat::Raw,
+    )
+    .await;
 
     assert!(result.is_ok());
     mock.assert_async().await;
@@ -185,7 +194,14 @@ async fn test_update() {
 async fn test_create_with_invalid_json() {
     let server = mockito::Server::new_async().await;
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
-    let result = create(&client, "page-1", "My DS", Some("not json"), &OutputFormat::Raw).await;
+    let result = create(
+        &client,
+        "page-1",
+        "My DS",
+        Some("not json"),
+        &OutputFormat::Raw,
+    )
+    .await;
 
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("Invalid JSON"));

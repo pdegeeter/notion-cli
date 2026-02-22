@@ -1,7 +1,7 @@
 use anyhow::Result;
 
 use crate::client::NotionClient;
-use crate::output::{print_result, OutputFormat};
+use crate::output::{OutputFormat, print_result};
 
 pub async fn me(client: &NotionClient, format: &OutputFormat) -> Result<()> {
     let result = client.get("/v1/users/me", &[]).await?;

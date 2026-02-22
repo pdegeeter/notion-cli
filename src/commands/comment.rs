@@ -2,7 +2,7 @@ use anyhow::Result;
 use serde_json::json;
 
 use crate::client::NotionClient;
-use crate::output::{print_result, OutputFormat};
+use crate::output::{OutputFormat, print_result};
 
 pub async fn list(
     client: &NotionClient,

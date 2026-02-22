@@ -38,7 +38,15 @@ async fn test_run_with_filter() {
         .await;
 
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
-    let result = run(&client, "test", Some("page"), None, None, &OutputFormat::Raw).await;
+    let result = run(
+        &client,
+        "test",
+        Some("page"),
+        None,
+        None,
+        &OutputFormat::Raw,
+    )
+    .await;
 
     assert!(result.is_ok());
     mock.assert_async().await;

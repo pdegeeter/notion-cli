@@ -1,14 +1,10 @@
 use anyhow::{Context, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::client::NotionClient;
-use crate::output::{print_result, OutputFormat};
+use crate::output::{OutputFormat, print_result};
 
-pub async fn get(
-    client: &NotionClient,
-    ds_id: &str,
-    format: &OutputFormat,
-) -> Result<()> {
+pub async fn get(client: &NotionClient, ds_id: &str, format: &OutputFormat) -> Result<()> {
     let path = format!("/v1/data_sources/{}", ds_id);
     let result = client.get(&path, &[]).await?;
     print_result(&result, format)?;
@@ -85,11 +81,7 @@ pub async fn query(
     Ok(())
 }
 
-pub async fn templates(
-    client: &NotionClient,
-    ds_id: &str,
-    format: &OutputFormat,
-) -> Result<()> {
+pub async fn templates(client: &NotionClient, ds_id: &str, format: &OutputFormat) -> Result<()> {
     let path = format!("/v1/data_sources/{}/templates", ds_id);
     let result = client.get(&path, &[]).await?;
     print_result(&result, format)?;

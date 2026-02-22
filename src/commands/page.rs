@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::client::NotionClient;
-use crate::output::{print_result, OutputFormat};
+use crate::output::{OutputFormat, print_result};
 
 pub async fn get(
     client: &NotionClient,
@@ -85,7 +85,10 @@ pub async fn move_page(
         "page" => json!({ "type": "page_id", "page_id": parent_id }),
         "database" => json!({ "type": "database_id", "database_id": parent_id }),
         "workspace" => json!({ "type": "workspace" }),
-        _ => anyhow::bail!("Invalid parent type: {}. Use 'page', 'database', or 'workspace'", parent_type),
+        _ => anyhow::bail!(
+            "Invalid parent type: {}. Use 'page', 'database', or 'workspace'",
+            parent_type
+        ),
     };
 
     let body = json!({ "parent": parent });
