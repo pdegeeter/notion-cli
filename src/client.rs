@@ -1,8 +1,11 @@
 use anyhow::{Context, Result};
 use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+use reqwest::multipart;
 use reqwest::Client;
 use serde_json::Value;
+use std::path::Path;
 use std::time::Duration;
+use tokio::fs;
 
 const NOTION_API_BASE: &str = "https://api.notion.com";
 const NOTION_VERSION: &str = "2025-09-03";
@@ -105,6 +108,92 @@ impl NotionClient {
         .await
     }
 
+    pub async fn post_multipart(
+        &self,
+        path: &str,
+        file_path: &Path,
+        part_number: Option<u32>,
+    ) -> Result<Value> {
+        let file_name = file_path
+            .file_name()
+            .and_then(|n| n.to_str())
+            .unwrap_or("file")
+            .to_string();
+
+        let file_bytes = fs::read(file_path)
+            .await
+            .with_context(|| format!("Failed to read file: {}", file_path.display()))?;
+
+        if self.dry_run {
+            eprintln!("[dry-run] POST {}{}", self.base_url, path);
+            eprintln!(
+                "[dry-run] File: {} ({} bytes)",
+                file_path.display(),
+                file_bytes.len()
+            );
+            if let Some(pn) = part_number {
+                eprintln!("[dry-run] Part number: {}", pn);
+            }
+            return Ok(serde_json::json!({
+                "dry_run": true,
+                "method": "POST",
+                "path": path,
+                "file": file_path.display().to_string(),
+                "file_size": file_bytes.len(),
+            }));
+        }
+
+        let url = format!("{}{}", self.base_url, path);
+        let mime = mime_from_filename(&file_name);
+
+        let mut attempt = 0;
+        loop {
+            let file_part = multipart::Part::bytes(file_bytes.clone())
+                .file_name(file_name.clone())
+                .mime_str(&mime)
+                .context("Invalid MIME type")?;
+
+            let mut form = multipart::Form::new().part("file", file_part);
+            if let Some(pn) = part_number {
+                form = form.text("part_number", pn.to_string());
+            }
+
+            let response = self
+                .client
+                .post(&url)
+                .multipart(form)
+                .send()
+                .await
+                .with_context(|| format!("POST {}", path))?;
+
+            let status = response.status();
+
+            if status == reqwest::StatusCode::TOO_MANY_REQUESTS && attempt < MAX_RETRIES {
+                let retry_after = response
+                    .headers()
+                    .get("retry-after")
+                    .and_then(|v| v.to_str().ok())
+                    .and_then(|v| v.parse::<u64>().ok());
+
+                let wait_ms = retry_after
+                    .map(|s| s * 1000)
+                    .unwrap_or(INITIAL_BACKOFF_MS * 2u64.pow(attempt));
+
+                eprintln!(
+                    "Rate limited (429). Retrying in {}ms (attempt {}/{})",
+                    wait_ms,
+                    attempt + 1,
+                    MAX_RETRIES
+                );
+                tokio::time::sleep(Duration::from_millis(wait_ms)).await;
+                attempt += 1;
+                continue;
+            }
+
+            return self.handle_response_with_status(status, response).await;
+        }
+    }
+
     fn print_dry_run<T: serde::Serialize>(&self, method: &str, path: &str, body: Option<&T>) -> Result<Value> {
         eprintln!("[dry-run] {} {}{}", method, self.base_url, path);
         if let Some(body) = body {
@@ -172,6 +261,35 @@ impl NotionClient {
 
         Ok(body)
     }
+}
+
+fn mime_from_filename(filename: &str) -> String {
+    let ext = filename
+        .rsplit('.')
+        .next()
+        .unwrap_or("")
+        .to_lowercase();
+    match ext.as_str() {
+        "png" => "image/png",
+        "jpg" | "jpeg" => "image/jpeg",
+        "gif" => "image/gif",
+        "webp" => "image/webp",
+        "svg" => "image/svg+xml",
+        "pdf" => "application/pdf",
+        "json" => "application/json",
+        "csv" => "text/csv",
+        "txt" => "text/plain",
+        "html" | "htm" => "text/html",
+        "mp4" => "video/mp4",
+        "mp3" => "audio/mpeg",
+        "zip" => "application/zip",
+        "doc" => "application/msword",
+        "docx" => "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "xls" => "application/vnd.ms-excel",
+        "xlsx" => "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        _ => "application/octet-stream",
+    }
+    .to_string()
 }
 
 #[cfg(test)]
@@ -481,5 +599,66 @@ mod tests {
         assert_eq!(result["ok"], true);
         mock_429.assert_async().await;
         mock_200.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_post_multipart_with_mock_server() {
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/v1/file_uploads/upload-1/send")
+            .with_status(200)
+            .with_header("content-type", "application/json")
+            .with_body(r#"{"id":"upload-1","status":"uploaded"}"#)
+            .create_async()
+            .await;
+
+        let dir = tempfile::tempdir().unwrap();
+        let file_path = dir.path().join("test.png");
+        tokio::fs::write(&file_path, b"fake png content").await.unwrap();
+
+        let client = NotionClient::with_base_url("token", &server.url()).unwrap();
+        let result = client
+            .post_multipart("/v1/file_uploads/upload-1/send", &file_path, None)
+            .await
+            .unwrap();
+
+        assert_eq!(result["id"], "upload-1");
+        assert_eq!(result["status"], "uploaded");
+        mock.assert_async().await;
+    }
+
+    #[tokio::test]
+    async fn test_post_multipart_dry_run() {
+        let mut server = mockito::Server::new_async().await;
+        let mock = server
+            .mock("POST", "/v1/file_uploads/upload-1/send")
+            .expect(0)
+            .create_async()
+            .await;
+
+        let dir = tempfile::tempdir().unwrap();
+        let file_path = dir.path().join("test.txt");
+        tokio::fs::write(&file_path, b"hello").await.unwrap();
+
+        let mut client = NotionClient::with_base_url("token", &server.url()).unwrap();
+        client.set_dry_run(true);
+        let result = client
+            .post_multipart("/v1/file_uploads/upload-1/send", &file_path, Some(1))
+            .await
+            .unwrap();
+
+        assert_eq!(result["dry_run"], true);
+        assert_eq!(result["method"], "POST");
+        assert_eq!(result["file_size"], 5);
+        mock.assert_async().await;
+    }
+
+    #[test]
+    fn test_mime_from_filename() {
+        assert_eq!(super::mime_from_filename("photo.png"), "image/png");
+        assert_eq!(super::mime_from_filename("doc.pdf"), "application/pdf");
+        assert_eq!(super::mime_from_filename("data.csv"), "text/csv");
+        assert_eq!(super::mime_from_filename("unknown.xyz"), "application/octet-stream");
+        assert_eq!(super::mime_from_filename("IMAGE.JPG"), "image/jpeg");
     }
 }
