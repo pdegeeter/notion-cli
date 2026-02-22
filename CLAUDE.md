@@ -14,6 +14,18 @@ cargo install --path .             # Install binary globally as `notion`
 
 Tests **must** run with `--test-threads=1` because config tests mutate environment variables.
 
+### Coverage
+
+```bash
+cargo llvm-cov --fail-under-lines 90 --text --ignore-filename-regex 'commands/init\.rs' -- --test-threads=1    # Text report
+cargo llvm-cov --fail-under-lines 90 --html --ignore-filename-regex 'commands/init\.rs' -- --test-threads=1    # HTML report (target/llvm-cov/html/)
+cargo llvm-cov --fail-under-lines 90 --lcov --output-path lcov.info --ignore-filename-regex 'commands/init\.rs' -- --test-threads=1  # LCOV format
+```
+
+Line coverage **must** stay at or above **90%**. The CI will fail if coverage drops below this threshold.
+
+`commands/init.rs` is excluded from coverage because it contains interactive prompts (`dialoguer`) that cannot be unit tested.
+
 ## Architecture
 
 Rust async CLI (`tokio` + `clap` derive) that calls the Notion REST API directly via `reqwest`.
