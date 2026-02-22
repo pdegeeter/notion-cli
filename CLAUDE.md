@@ -14,15 +14,25 @@ cargo install --path .             # Install binary globally as `notion`
 
 Tests **must** run with `--test-threads=1` because config tests mutate environment variables.
 
+### Lint & Format
+
+```bash
+cargo clippy -- -D warnings         # Lint (warnings are errors)
+cargo fmt --check                   # Check formatting
+cargo fmt                           # Auto-fix formatting
+```
+
+All clippy warnings **must** be resolved. The CI will fail on any warning.
+
 ### Coverage
 
 ```bash
-cargo llvm-cov --fail-under-lines 90 --text -- --test-threads=1    # Text report
-cargo llvm-cov --fail-under-lines 90 --html -- --test-threads=1    # HTML report (target/llvm-cov/html/)
-cargo llvm-cov --fail-under-lines 90 --lcov --output-path lcov.info -- --test-threads=1  # LCOV format
+cargo llvm-cov --fail-under-lines 91 --text -- --test-threads=1    # Text report
+cargo llvm-cov --fail-under-lines 91 --html -- --test-threads=1    # HTML report (target/llvm-cov/html/)
+cargo llvm-cov --fail-under-lines 91 --lcov --output-path lcov.info -- --test-threads=1  # LCOV format
 ```
 
-Line coverage **must** stay at or above **90%**. The CI will fail if coverage drops below this threshold.
+Line coverage **must** stay at or above **91%**. The CI will fail if coverage drops below this threshold.
 
 ## Architecture
 
@@ -71,6 +81,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/). Format: `<type
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `ci`, `chore`, `perf`, `build`
 
 Examples:
+
 - `feat(page): add duplicate command`
 - `fix(client): handle 502 responses`
 - `docs(readme): update installation instructions`

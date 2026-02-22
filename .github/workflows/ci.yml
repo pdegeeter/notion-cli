@@ -13,20 +13,31 @@ jobs:
   ci:
     name: Lint & Test
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      checks: write
     steps:
       - uses: actions/checkout@v4
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy, llvm-tools-preview
+          components: rustfmt, clippy, llvm-tools-preview
 
       - uses: Swatinem/rust-cache@v2
 
       - name: Install cargo-llvm-cov
         uses: taiki-e/install-action@cargo-llvm-cov
 
+      - name: Format
+        uses: actions-rust-lang/rustfmt@v1
+
       - name: Lint
-        run: cargo clippy -- -D warnings
+        uses: sksat/action-clippy@v1.1.1
+        with:
+          reporter: github-pr-review
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          clippy_flags: -- -D warnings
 
       - name: Test with coverage
         run: cargo llvm-cov --fail-under-lines 90 --lcov --output-path lcov.info -- --test-threads=1

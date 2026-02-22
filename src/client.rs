@@ -1,7 +1,7 @@
 use anyhow::{Context, Result};
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
-use reqwest::multipart;
 use reqwest::Client;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
+use reqwest::multipart;
 use serde_json::Value;
 use std::path::Path;
 use std::time::Duration;
@@ -30,10 +30,7 @@ impl NotionClient {
             HeaderValue::from_str(&format!("Bearer {}", token))
                 .context("Invalid API token format")?,
         );
-        headers.insert(
-            "Notion-Version",
-            HeaderValue::from_static(NOTION_VERSION),
-        );
+        headers.insert("Notion-Version", HeaderValue::from_static(NOTION_VERSION));
         headers.insert(CONTENT_TYPE, HeaderValue::from_static("application/json"));
 
         let client = Client::builder()
@@ -55,13 +52,17 @@ impl NotionClient {
     pub async fn get(&self, path: &str, query: &[(&str, &str)]) -> Result<Value> {
         let url = format!("{}{}", self.base_url, path);
 
-        self.send_with_retry(|| {
-            let mut req = self.client.get(&url);
-            if !query.is_empty() {
-                req = req.query(query);
-            }
-            req
-        }, "GET", path)
+        self.send_with_retry(
+            || {
+                let mut req = self.client.get(&url);
+                if !query.is_empty() {
+                    req = req.query(query);
+                }
+                req
+            },
+            "GET",
+            path,
+        )
         .await
     }
 
@@ -72,13 +73,17 @@ impl NotionClient {
 
         let url = format!("{}{}", self.base_url, path);
 
-        self.send_with_retry(|| {
-            let mut req = self.client.post(&url);
-            if let Some(body) = body {
-                req = req.json(body);
-            }
-            req
-        }, "POST", path)
+        self.send_with_retry(
+            || {
+                let mut req = self.client.post(&url);
+                if let Some(body) = body {
+                    req = req.json(body);
+                }
+                req
+            },
+            "POST",
+            path,
+        )
         .await
     }
 
@@ -89,10 +94,8 @@ impl NotionClient {
 
         let url = format!("{}{}", self.base_url, path);
 
-        self.send_with_retry(|| {
-            self.client.patch(&url).json(body)
-        }, "PATCH", path)
-        .await
+        self.send_with_retry(|| self.client.patch(&url).json(body), "PATCH", path)
+            .await
     }
 
     pub async fn delete(&self, path: &str) -> Result<Value> {
@@ -102,10 +105,8 @@ impl NotionClient {
 
         let url = format!("{}{}", self.base_url, path);
 
-        self.send_with_retry(|| {
-            self.client.delete(&url)
-        }, "DELETE", path)
-        .await
+        self.send_with_retry(|| self.client.delete(&url), "DELETE", path)
+            .await
     }
 
     pub async fn post_multipart(
@@ -194,7 +195,12 @@ impl NotionClient {
         }
     }
 
-    fn print_dry_run<T: serde::Serialize>(&self, method: &str, path: &str, body: Option<&T>) -> Result<Value> {
+    fn print_dry_run<T: serde::Serialize>(
+        &self,
+        method: &str,
+        path: &str,
+        body: Option<&T>,
+    ) -> Result<Value> {
         eprintln!("[dry-run] {} {}{}", method, self.base_url, path);
         if let Some(body) = body {
             eprintln!("[dry-run] Body: {}", serde_json::to_string_pretty(body)?);
@@ -252,9 +258,7 @@ impl NotionClient {
             .context("Failed to parse response as JSON")?;
 
         if !status.is_success() {
-            let message = body["message"]
-                .as_str()
-                .unwrap_or("Unknown error");
+            let message = body["message"].as_str().unwrap_or("Unknown error");
             let code = body["code"].as_str().unwrap_or("unknown");
             anyhow::bail!("Notion API error ({}): [{}] {}", status, code, message);
         }
@@ -264,11 +268,7 @@ impl NotionClient {
 }
 
 fn mime_from_filename(filename: &str) -> String {
-    let ext = filename
-        .rsplit('.')
-        .next()
-        .unwrap_or("")
-        .to_lowercase();
+    let ext = filename.rsplit('.').next().unwrap_or("").to_lowercase();
     match ext.as_str() {
         "png" => "image/png",
         "jpg" | "jpeg" => "image/jpeg",

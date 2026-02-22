@@ -57,9 +57,10 @@ async fn test_get_with_query_params() {
     let mut server = mockito::Server::new_async().await;
     let mock = server
         .mock("GET", "/v1/users")
-        .match_query(mockito::Matcher::AllOf(vec![
-            mockito::Matcher::UrlEncoded("page_size".into(), "10".into()),
-        ]))
+        .match_query(mockito::Matcher::AllOf(vec![mockito::Matcher::UrlEncoded(
+            "page_size".into(),
+            "10".into(),
+        )]))
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(r#"{"results":[],"has_more":false}"#)
@@ -67,7 +68,10 @@ async fn test_get_with_query_params() {
         .await;
 
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
-    let result = client.get("/v1/users", &[("page_size", "10")]).await.unwrap();
+    let result = client
+        .get("/v1/users", &[("page_size", "10")])
+        .await
+        .unwrap();
 
     assert_eq!(result["has_more"], false);
     mock.assert_async().await;
@@ -284,7 +288,9 @@ async fn test_retry_on_429_then_success() {
         .with_status(429)
         .with_header("content-type", "application/json")
         .with_header("retry-after", "0")
-        .with_body(r#"{"object":"error","status":429,"code":"rate_limited","message":"Rate limited"}"#)
+        .with_body(
+            r#"{"object":"error","status":429,"code":"rate_limited","message":"Rate limited"}"#,
+        )
         .expect(1)
         .create_async()
         .await;
@@ -318,7 +324,9 @@ async fn test_post_multipart_with_mock_server() {
 
     let dir = tempfile::tempdir().unwrap();
     let file_path = dir.path().join("test.png");
-    tokio::fs::write(&file_path, b"fake png content").await.unwrap();
+    tokio::fs::write(&file_path, b"fake png content")
+        .await
+        .unwrap();
 
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
     let result = client
@@ -362,7 +370,10 @@ fn test_mime_from_filename() {
     assert_eq!(super::mime_from_filename("photo.png"), "image/png");
     assert_eq!(super::mime_from_filename("doc.pdf"), "application/pdf");
     assert_eq!(super::mime_from_filename("data.csv"), "text/csv");
-    assert_eq!(super::mime_from_filename("unknown.xyz"), "application/octet-stream");
+    assert_eq!(
+        super::mime_from_filename("unknown.xyz"),
+        "application/octet-stream"
+    );
     assert_eq!(super::mime_from_filename("IMAGE.JPG"), "image/jpeg");
 }
 
@@ -381,7 +392,10 @@ fn test_mime_from_filename_all_types() {
         super::mime_from_filename("a.docx"),
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
-    assert_eq!(super::mime_from_filename("a.xls"), "application/vnd.ms-excel");
+    assert_eq!(
+        super::mime_from_filename("a.xls"),
+        "application/vnd.ms-excel"
+    );
     assert_eq!(
         super::mime_from_filename("a.xlsx"),
         "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
@@ -396,11 +410,20 @@ async fn test_post_multipart_file_not_found() {
     let server = mockito::Server::new_async().await;
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
     let result = client
-        .post_multipart("/v1/file_uploads/fu-1/send", std::path::Path::new("/nonexistent/file.txt"), None)
+        .post_multipart(
+            "/v1/file_uploads/fu-1/send",
+            std::path::Path::new("/nonexistent/file.txt"),
+            None,
+        )
         .await;
 
     assert!(result.is_err());
-    assert!(result.unwrap_err().to_string().contains("Failed to read file"));
+    assert!(
+        result
+            .unwrap_err()
+            .to_string()
+            .contains("Failed to read file")
+    );
 }
 
 #[tokio::test]

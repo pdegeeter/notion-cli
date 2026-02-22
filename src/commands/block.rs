@@ -1,14 +1,10 @@
 use anyhow::{Context, Result};
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 
 use crate::client::NotionClient;
-use crate::output::{print_result, OutputFormat};
+use crate::output::{OutputFormat, print_result};
 
-pub async fn get(
-    client: &NotionClient,
-    block_id: &str,
-    format: &OutputFormat,
-) -> Result<()> {
+pub async fn get(client: &NotionClient, block_id: &str, format: &OutputFormat) -> Result<()> {
     let path = format!("/v1/blocks/{}", block_id);
     let result = client.get(&path, &[]).await?;
     print_result(&result, format)?;
@@ -66,8 +62,7 @@ pub async fn update(
     archived: Option<bool>,
     format: &OutputFormat,
 ) -> Result<()> {
-    let mut body: Value =
-        serde_json::from_str(data_json).context("Invalid JSON for block data")?;
+    let mut body: Value = serde_json::from_str(data_json).context("Invalid JSON for block data")?;
 
     if let Some(a) = archived {
         body["archived"] = json!(a);
@@ -79,11 +74,7 @@ pub async fn update(
     Ok(())
 }
 
-pub async fn delete(
-    client: &NotionClient,
-    block_id: &str,
-    format: &OutputFormat,
-) -> Result<()> {
+pub async fn delete(client: &NotionClient, block_id: &str, format: &OutputFormat) -> Result<()> {
     let path = format!("/v1/blocks/{}", block_id);
     let result = client.delete(&path).await?;
     print_result(&result, format)?;

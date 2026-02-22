@@ -141,9 +141,10 @@ async fn test_children_with_page_size_only() {
     let mut server = mockito::Server::new_async().await;
     let mock = server
         .mock("GET", "/v1/blocks/block-1/children")
-        .match_query(mockito::Matcher::AllOf(vec![
-            mockito::Matcher::UrlEncoded("page_size".into(), "5".into()),
-        ]))
+        .match_query(mockito::Matcher::AllOf(vec![mockito::Matcher::UrlEncoded(
+            "page_size".into(),
+            "5".into(),
+        )]))
         .with_status(200)
         .with_header("content-type", "application/json")
         .with_body(r#"{"results":[],"has_more":false}"#)
@@ -218,7 +219,14 @@ async fn test_update_without_archived() {
 async fn test_append_with_invalid_json() {
     let server = mockito::Server::new_async().await;
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
-    let result = append(&client, "block-1", "not valid json", None, &OutputFormat::Raw).await;
+    let result = append(
+        &client,
+        "block-1",
+        "not valid json",
+        None,
+        &OutputFormat::Raw,
+    )
+    .await;
 
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("Invalid JSON"));

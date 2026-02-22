@@ -106,7 +106,15 @@ async fn test_create_with_children() {
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
     let props = r#"{"title":[{"text":{"content":"Test"}}]}"#;
     let children = r#"[{"object":"block","type":"paragraph","paragraph":{"rich_text":[{"text":{"content":"Hello"}}]}}]"#;
-    let result = create(&client, "parent-1", props, Some(children), false, &OutputFormat::Raw).await;
+    let result = create(
+        &client,
+        "parent-1",
+        props,
+        Some(children),
+        false,
+        &OutputFormat::Raw,
+    )
+    .await;
 
     assert!(result.is_ok());
     mock.assert_async().await;
@@ -196,7 +204,15 @@ async fn test_update_without_archived() {
 async fn test_create_with_invalid_json() {
     let server = mockito::Server::new_async().await;
     let client = NotionClient::with_base_url("token", &server.url()).unwrap();
-    let result = create(&client, "parent-1", "not valid json", None, false, &OutputFormat::Raw).await;
+    let result = create(
+        &client,
+        "parent-1",
+        "not valid json",
+        None,
+        false,
+        &OutputFormat::Raw,
+    )
+    .await;
 
     assert!(result.is_err());
     assert!(result.unwrap_err().to_string().contains("Invalid JSON"));

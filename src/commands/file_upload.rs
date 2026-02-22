@@ -3,7 +3,7 @@ use serde_json::json;
 use std::path::Path;
 
 use crate::client::NotionClient;
-use crate::output::{print_info, print_result, print_success, OutputFormat};
+use crate::output::{OutputFormat, print_info, print_result, print_success};
 
 pub async fn create(
     client: &NotionClient,
@@ -49,22 +49,14 @@ pub async fn send(
     Ok(())
 }
 
-pub async fn complete(
-    client: &NotionClient,
-    upload_id: &str,
-    format: &OutputFormat,
-) -> Result<()> {
+pub async fn complete(client: &NotionClient, upload_id: &str, format: &OutputFormat) -> Result<()> {
     let path = format!("/v1/file_uploads/{}/complete", upload_id);
     let result = client.post(&path, None).await?;
     print_result(&result, format)?;
     Ok(())
 }
 
-pub async fn get(
-    client: &NotionClient,
-    upload_id: &str,
-    format: &OutputFormat,
-) -> Result<()> {
+pub async fn get(client: &NotionClient, upload_id: &str, format: &OutputFormat) -> Result<()> {
     let path = format!("/v1/file_uploads/{}", upload_id);
     let result = client.get(&path, &[]).await?;
     print_result(&result, format)?;
@@ -236,9 +228,10 @@ mod tests {
         let mut server = mockito::Server::new_async().await;
         let mock = server
             .mock("GET", "/v1/file_uploads")
-            .match_query(mockito::Matcher::AllOf(vec![
-                mockito::Matcher::UrlEncoded("status".into(), "upload_completed".into()),
-            ]))
+            .match_query(mockito::Matcher::AllOf(vec![mockito::Matcher::UrlEncoded(
+                "status".into(),
+                "upload_completed".into(),
+            )]))
             .with_status(200)
             .with_header("content-type", "application/json")
             .with_body(r#"{"results":[{"id":"fu-1"}],"has_more":false}"#)
@@ -296,7 +289,9 @@ mod tests {
 
         let dir = tempfile::tempdir().unwrap();
         let file_path = dir.path().join("report.pdf");
-        tokio::fs::write(&file_path, b"fake pdf content").await.unwrap();
+        tokio::fs::write(&file_path, b"fake pdf content")
+            .await
+            .unwrap();
 
         let client = NotionClient::with_base_url("token", &server.url()).unwrap();
         let result = upload(&client, &file_path, None, &OutputFormat::Raw).await;
