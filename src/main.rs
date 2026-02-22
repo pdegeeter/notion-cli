@@ -11,6 +11,7 @@ use output::OutputFormat;
 /// Notion CLI - Interact with the Notion API from the command line
 #[derive(Parser)]
 #[command(name = "notion", version, about)]
+#[command(disable_version_flag = true)]
 struct Cli {
     /// Output format
     #[arg(long, global = true, default_value = "pretty")]
@@ -23,6 +24,10 @@ struct Cli {
     /// Show the request without executing it (write operations only)
     #[arg(long, global = true)]
     dry_run: bool,
+
+    /// Print version
+    #[arg(short = 'v', long = "version", action = clap::ArgAction::Version)]
+    version: (),
 
     /// Number of items per page (max 100)
     #[arg(long, global = true)]
