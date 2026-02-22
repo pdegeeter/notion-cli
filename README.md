@@ -4,6 +4,23 @@ A command-line interface for the [Notion API](https://developers.notion.com/), b
 
 ## Installation
 
+### From GitHub releases
+
+```bash
+# macOS (Apple Silicon)
+curl -sL https://github.com/pdegeeter/notion-cli/releases/latest/download/notion-aarch64-apple-darwin.tar.gz | tar xz
+sudo mv notion /usr/local/bin/
+
+# Linux (x86_64)
+curl -sL https://github.com/pdegeeter/notion-cli/releases/latest/download/notion-x86_64-unknown-linux-gnu.tar.gz | tar xz
+sudo mv notion /usr/local/bin/
+
+# Windows (x86_64)
+# Download notion-x86_64-pc-windows-msvc.zip from the latest release and add to PATH
+```
+
+### From source
+
 ```bash
 cargo install --path .
 ```
@@ -97,6 +114,48 @@ eval "$(notion completions bash)"
 
 # Fish
 notion completions fish | source
+```
+
+## Claude Code Skill
+
+This project includes a Claude Code skill in `skills/notion/` that teaches Claude how to use the Notion CLI. It provides command references, examples, and usage patterns for all commands.
+
+### Install the skill
+
+```bash
+# From npm registry
+npx skills add pdegeeter/notion-cli
+
+# From GitHub
+claude skill install pdegeeter/notion-cli/skills/notion
+
+# From local checkout (for developing/testing the skill)
+claude skill install ./skills/notion
+```
+
+### What it does
+
+Once installed, Claude will automatically use the `notion` CLI when you ask it to interact with Notion. For example:
+
+- "Search for pages about Project Alpha"
+- "Create a new page under my Tasks database"
+- "List comments on this page"
+- "Query the inventory data source for items out of stock"
+
+### Skill structure
+
+```
+skills/notion/
+├── SKILL.md                      # Main skill instructions
+└── references/                   # Detailed command references
+    ├── search.md
+    ├── user.md
+    ├── page.md
+    ├── block.md
+    ├── comment.md
+    ├── database.md
+    ├── datasource.md
+    └── formatting.md
 ```
 
 ## Development

@@ -53,3 +53,25 @@ To add a new command: add variant to the relevant enum in `main.rs`, add the han
 - HTTP tests use `mockito` async server (`Server::new_async().await`)
 - Config tests use `tempfile` for filesystem isolation
 - CLI parsing tests use `Cli::parse_from()` / `Cli::try_parse_from()`
+
+## Commit conventions
+
+Use [Conventional Commits](https://www.conventionalcommits.org/). Format: `<type>(<scope>): <description>`
+
+Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `ci`, `chore`, `perf`, `build`
+
+Examples:
+- `feat(page): add duplicate command`
+- `fix(client): handle 502 responses`
+- `docs(readme): update installation instructions`
+- `refactor(output): extract table formatter`
+
+## Maintaining documentation
+
+When adding or modifying a CLI command, update the following files:
+
+1. **`README.md`** - Update the commands table and examples if applicable.
+2. **`CONTRIBUTING.md`** - Update if the contribution workflow or conventions change.
+3. **`skills/notion/`** - Update the Claude Code skill:
+   - Add/update the relevant reference file in `skills/notion/references/` (one file per command group).
+   - Update `skills/notion/SKILL.md` if a new command group is added (add it to the command groups table).
