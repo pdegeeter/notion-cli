@@ -13,7 +13,7 @@ use std::path::PathBuf;
 #[derive(Parser)]
 #[command(name = "notion", version, about)]
 #[command(disable_version_flag = true)]
-struct Cli {
+pub struct Cli {
     /// Output format
     #[arg(long, global = true, default_value = "pretty")]
     output: OutputFormat,
@@ -43,7 +43,7 @@ struct Cli {
 }
 
 #[derive(Subcommand)]
-enum Commands {
+pub enum Commands {
     /// Initialize configuration and test connection
     Init,
 
@@ -98,7 +98,7 @@ enum Commands {
 }
 
 #[derive(Subcommand)]
-enum UserCommands {
+pub enum UserCommands {
     /// Get the current bot user
     Me,
 
@@ -114,7 +114,7 @@ enum UserCommands {
 }
 
 #[derive(Subcommand)]
-enum PageCommands {
+pub enum PageCommands {
     /// Retrieve a page
     #[command(arg_required_else_help = true)]
     Get {
@@ -188,7 +188,7 @@ enum PageCommands {
 }
 
 #[derive(Subcommand)]
-enum BlockCommands {
+pub enum BlockCommands {
     /// Retrieve a block
     #[command(arg_required_else_help = true)]
     Get {
@@ -242,7 +242,7 @@ enum BlockCommands {
 }
 
 #[derive(Subcommand)]
-enum CommentCommands {
+pub enum CommentCommands {
     /// List comments on a block or page
     #[command(arg_required_else_help = true)]
     List {
@@ -265,7 +265,7 @@ enum CommentCommands {
 }
 
 #[derive(Subcommand)]
-enum DbCommands {
+pub enum DbCommands {
     /// Retrieve database metadata
     #[command(arg_required_else_help = true)]
     Get {
@@ -275,7 +275,7 @@ enum DbCommands {
 }
 
 #[derive(Subcommand)]
-enum DsCommands {
+pub enum DsCommands {
     /// Retrieve a data source
     #[command(arg_required_else_help = true)]
     Get {
@@ -334,7 +334,7 @@ enum DsCommands {
 }
 
 #[derive(Subcommand)]
-enum FileUploadCommands {
+pub enum FileUploadCommands {
     /// Create a file upload session
     #[command(arg_required_else_help = true)]
     Create {
@@ -410,7 +410,10 @@ enum FileUploadCommands {
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
+    run(cli).await
+}
 
+pub async fn run(cli: Cli) -> Result<()> {
     let format = if cli.raw {
         OutputFormat::Raw
     } else {
@@ -446,7 +449,18 @@ async fn main() -> Result<()> {
     let mut notion = client::NotionClient::new(token)?;
     notion.set_dry_run(cli.dry_run);
 
-    match &cli.command {
+    run_with_client(cli.command, &notion, cli.page_size, cli.start_cursor.as_deref(), &format).await
+}
+
+pub async fn run_with_client(
+    command: Commands,
+    notion: &client::NotionClient,
+    page_size: Option<u32>,
+    start_cursor: Option<&str>,
+    format: &OutputFormat,
+) -> Result<()> {
+
+    match &command {
         Commands::Init | Commands::Completions { .. } | Commands::Manpage => unreachable!(),
 
         Commands::FileUpload(cmd) => match cmd {
@@ -458,13 +472,13 @@ async fn main() -> Result<()> {
                 external_url,
             } => {
                 commands::file_upload::create(
-                    &notion,
+                    notion,
                     mode,
                     filename.as_deref(),
                     content_type.as_deref(),
                     *number_of_parts,
                     external_url.as_deref(),
-                    &format,
+                    format,
                 )
                 .await
             }
@@ -473,21 +487,21 @@ async fn main() -> Result<()> {
                 file,
                 part_number,
             } => {
-                commands::file_upload::send(&notion, id, file, *part_number, &format).await
+                commands::file_upload::send(notion, id, file, *part_number, format).await
             }
             FileUploadCommands::Complete { id } => {
-                commands::file_upload::complete(&notion, id, &format).await
+                commands::file_upload::complete(notion, id, format).await
             }
             FileUploadCommands::Get { id } => {
-                commands::file_upload::get(&notion, id, &format).await
+                commands::file_upload::get(notion, id, format).await
             }
             FileUploadCommands::List { status } => {
                 commands::file_upload::list(
-                    &notion,
+                    notion,
                     status.as_deref(),
-                    cli.page_size,
-                    cli.start_cursor.as_deref(),
-                    &format,
+                    page_size,
+                    start_cursor,
+                    format,
                 )
                 .await
             }
@@ -495,32 +509,32 @@ async fn main() -> Result<()> {
                 file,
                 content_type,
             } => {
-                commands::file_upload::upload(&notion, file, content_type.as_deref(), &format)
+                commands::file_upload::upload(notion, file, content_type.as_deref(), format)
                     .await
             }
         },
 
         Commands::Search { query, filter } => {
             commands::search::run(
-                &notion,
+                notion,
                 query,
                 filter.as_deref(),
-                cli.page_size,
-                cli.start_cursor.as_deref(),
-                &format,
+                page_size,
+                start_cursor,
+                format,
             )
             .await
         }
 
         Commands::User(cmd) => match cmd {
-            UserCommands::Me => commands::user::me(&notion, &format).await,
-            UserCommands::Get { id } => commands::user::get(&notion, id, &format).await,
+            UserCommands::Me => commands::user::me(notion, format).await,
+            UserCommands::Get { id } => commands::user::get(notion, id, format).await,
             UserCommands::List => {
                 commands::user::list(
-                    &notion,
-                    cli.page_size,
-                    cli.start_cursor.as_deref(),
-                    &format,
+                    notion,
+                    page_size,
+                    start_cursor,
+                    format,
                 )
                 .await
             }
@@ -528,7 +542,7 @@ async fn main() -> Result<()> {
 
         Commands::Page(cmd) => match cmd {
             PageCommands::Get { id, filter_properties } => {
-                commands::page::get(&notion, id, filter_properties, &format).await
+                commands::page::get(notion, id, filter_properties, format).await
             }
             PageCommands::Create {
                 parent,
@@ -537,12 +551,12 @@ async fn main() -> Result<()> {
                 database_parent,
             } => {
                 commands::page::create(
-                    &notion,
+                    notion,
                     parent,
                     properties,
                     children.as_deref(),
                     *database_parent,
-                    &format,
+                    format,
                 )
                 .await
             }
@@ -550,37 +564,37 @@ async fn main() -> Result<()> {
                 id,
                 properties,
                 archived,
-            } => commands::page::update(&notion, id, properties, *archived, &format).await,
+            } => commands::page::update(notion, id, properties, *archived, format).await,
             PageCommands::Move {
                 id,
                 parent_type,
                 to,
-            } => commands::page::move_page(&notion, id, parent_type, to, &format).await,
+            } => commands::page::move_page(notion, id, parent_type, to, format).await,
             PageCommands::Property {
                 page_id,
                 property_id,
             } => {
                 commands::page::property(
-                    &notion,
+                    notion,
                     page_id,
                     property_id,
-                    cli.page_size,
-                    cli.start_cursor.as_deref(),
-                    &format,
+                    page_size,
+                    start_cursor,
+                    format,
                 )
                 .await
             }
         },
 
         Commands::Block(cmd) => match cmd {
-            BlockCommands::Get { id } => commands::block::get(&notion, id, &format).await,
+            BlockCommands::Get { id } => commands::block::get(notion, id, format).await,
             BlockCommands::Children { id } => {
                 commands::block::children(
-                    &notion,
+                    notion,
                     id,
-                    cli.page_size,
-                    cli.start_cursor.as_deref(),
-                    &format,
+                    page_size,
+                    start_cursor,
+                    format,
                 )
                 .await
             }
@@ -589,52 +603,52 @@ async fn main() -> Result<()> {
                 children,
                 after,
             } => {
-                commands::block::append(&notion, id, children, after.as_deref(), &format).await
+                commands::block::append(notion, id, children, after.as_deref(), format).await
             }
             BlockCommands::Update { id, data, archived } => {
-                commands::block::update(&notion, id, data, *archived, &format).await
+                commands::block::update(notion, id, data, *archived, format).await
             }
-            BlockCommands::Delete { id } => commands::block::delete(&notion, id, &format).await,
+            BlockCommands::Delete { id } => commands::block::delete(notion, id, format).await,
         },
 
         Commands::Comment(cmd) => match cmd {
             CommentCommands::List { block_id } => {
                 commands::comment::list(
-                    &notion,
+                    notion,
                     block_id,
-                    cli.page_size,
-                    cli.start_cursor.as_deref(),
-                    &format,
+                    page_size,
+                    start_cursor,
+                    format,
                 )
                 .await
             }
             CommentCommands::Create { page_id, text } => {
-                commands::comment::create(&notion, page_id, text, &format).await
+                commands::comment::create(notion, page_id, text, format).await
             }
         },
 
         Commands::Db(cmd) => match cmd {
-            DbCommands::Get { id } => commands::database::get(&notion, id, &format).await,
+            DbCommands::Get { id } => commands::database::get(notion, id, format).await,
         },
 
         Commands::Ds(cmd) => match cmd {
-            DsCommands::Get { id } => commands::datasource::get(&notion, id, &format).await,
+            DsCommands::Get { id } => commands::datasource::get(notion, id, format).await,
             DsCommands::Create {
                 parent,
                 title,
                 properties,
             } => {
                 commands::datasource::create(
-                    &notion,
+                    notion,
                     parent,
                     title,
                     properties.as_deref(),
-                    &format,
+                    format,
                 )
                 .await
             }
             DsCommands::Update { id, data } => {
-                commands::datasource::update(&notion, id, data, &format).await
+                commands::datasource::update(notion, id, data, format).await
             }
             DsCommands::Query {
                 id,
@@ -642,18 +656,18 @@ async fn main() -> Result<()> {
                 sorts,
             } => {
                 commands::datasource::query(
-                    &notion,
+                    notion,
                     id,
                     filter.as_deref(),
                     sorts.as_deref(),
-                    cli.page_size,
-                    cli.start_cursor.as_deref(),
-                    &format,
+                    page_size,
+                    start_cursor,
+                    format,
                 )
                 .await
             }
             DsCommands::Templates { id } => {
-                commands::datasource::templates(&notion, id, &format).await
+                commands::datasource::templates(notion, id, format).await
             }
         },
     }
