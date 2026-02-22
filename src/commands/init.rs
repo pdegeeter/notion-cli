@@ -1,6 +1,6 @@
 use anyhow::Result;
 use colored::Colorize;
-use dialoguer::{Input, Confirm};
+use dialoguer::{Confirm, Input};
 
 use crate::client::NotionClient;
 use crate::config::Config;
@@ -43,6 +43,17 @@ pub async fn run() -> Result<()> {
     let token = config.get_token()?;
     let client = NotionClient::new(token)?;
 
+    verify_connection(&client).await?;
+
+    // Save config
+    config.save()?;
+    let config_path = Config::config_path()?;
+    print_success(&format!("Config saved to {}", config_path.display()));
+
+    Ok(())
+}
+
+pub async fn verify_connection(client: &NotionClient) -> Result<()> {
     match client.get("/v1/users/me", &[]).await {
         Ok(user) => {
             let name = user["name"].as_str().unwrap_or("Unknown");
@@ -54,17 +65,16 @@ pub async fn run() -> Result<()> {
             print_success(&format!("Connected as {} ({})", name.bold(), bot_type));
             print_success(&format!("Workspace: {}", workspace.bold()));
 
-            // Save config
-            config.save()?;
-            let config_path = Config::config_path()?;
-            print_success(&format!("Config saved to {}", config_path.display()));
+            Ok(())
         }
         Err(e) => {
             print_error(&format!("Connection failed: {}", e));
             print_error("Please check your API token and try again.");
-            return Err(e);
+            Err(e)
         }
     }
-
-    Ok(())
 }
+
+#[cfg(test)]
+#[path = "init_tests.rs"]
+mod tests;
