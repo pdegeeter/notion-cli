@@ -8,6 +8,7 @@ use crate::output::OutputFormat;
 #[derive(Parser)]
 #[command(name = "notion", version, about)]
 #[command(disable_version_flag = true)]
+#[allow(clippy::manual_non_exhaustive)]
 pub struct Cli {
     /// Output format
     #[arg(long, global = true, default_value = "pretty")]
