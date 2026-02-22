@@ -70,6 +70,12 @@ notion <command> [options]
 | `notion ds update <id>`                              | Update a data source                               |
 | `notion ds query <id>`                               | Query a data source                                |
 | `notion ds templates <id>`                           | List data source templates                         |
+| `notion file-upload create --mode <mode>`            | Create a file upload session                       |
+| `notion file-upload send <id> --file <path>`         | Send a file to an upload session                   |
+| `notion file-upload complete <id>`                   | Complete a file upload                             |
+| `notion file-upload get <id>`                        | Retrieve a file upload                             |
+| `notion file-upload list`                            | List file uploads                                  |
+| `notion file-upload upload <path>`                   | Upload a file in one step                          |
 | `notion completions <shell>`                         | Generate shell completions (bash, zsh, fish, etc.) |
 | `notion manpage`                                     | Generate man page                                  |
 
@@ -155,6 +161,7 @@ skills/notion/
     ├── comment.md
     ├── database.md
     ├── datasource.md
+    ├── file-upload.md
     └── formatting.md
 ```
 
