@@ -604,6 +604,30 @@ fn test_file_upload_upload_with_content_type() {
     }
 }
 
+// --- Tests for run() function (non-API commands) ---
+
+#[tokio::test]
+async fn test_run_completions_command() {
+    let cli = parse(&["notion", "completions", "bash"]);
+    let result = run(cli).await;
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_run_manpage_command() {
+    let cli = parse(&["notion", "manpage"]);
+    let result = run(cli).await;
+    assert!(result.is_ok());
+}
+
+#[tokio::test]
+async fn test_run_raw_flag_sets_format() {
+    // The raw flag should work with completions (which returns before using format)
+    let cli = parse(&["notion", "--raw", "completions", "zsh"]);
+    let result = run(cli).await;
+    assert!(result.is_ok());
+}
+
 // --- Routing integration tests using run_with_client ---
 
 fn mock_json() -> &'static str {
