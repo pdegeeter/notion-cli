@@ -128,6 +128,9 @@ npx skills add pdegeeter/notion-cli
 
 # From GitHub
 claude skill install pdegeeter/notion-cli/skills/notion
+
+# From local checkout (for developing/testing the skill)
+claude skill install ./skills/notion
 ```
 
 ### What it does

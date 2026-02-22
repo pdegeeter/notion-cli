@@ -83,7 +83,7 @@ notion block append <page-id> \
 
 # Query a data source with filter and sort
 notion ds query <ds-id> \
-  --filter '{"property":"Status","equals":"Done"}' \
+  --filter '{"property":"Status","select":{"equals":"Done"}}' \
   --sorts '[{"property":"Created","direction":"descending"}]'
 
 # Preview a delete without executing

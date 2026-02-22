@@ -83,7 +83,7 @@ Move a page to a different parent.
 | Argument / Option        | Required | Description                                        |
 | ------------------------ | -------- | -------------------------------------------------- |
 | `<id>`                   | yes      | Page ID to move                                    |
-| `--to <id>`              | yes\*    | Destination parent ID (\*not needed for workspace) |
+| `--to <id>`              | yes      | Destination parent ID                              |
 | `--parent-type <string>` | no       | `page` (default), `database`, or `workspace`       |
 
 Supports `--dry-run`.
@@ -95,8 +95,8 @@ notion page move abc123 --to def456
 # Move to a database
 notion page move abc123 --to db-id --parent-type database
 
-# Move to workspace root
-notion page move abc123 --parent-type workspace
+# Move to workspace root (--to is ignored but required)
+notion page move abc123 --to _ --parent-type workspace
 ```
 
 ## `notion page property <page_id> <property_id>`
