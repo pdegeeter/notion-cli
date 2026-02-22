@@ -39,6 +39,16 @@ cargo llvm-cov --fail-under-lines 90 --text -- --test-threads=1
 
 The CI will fail if coverage drops below this threshold.
 
+### Lint & Format
+
+Code must pass clippy with no warnings and be properly formatted:
+
+```bash
+cargo clippy -- -D warnings         # Lint (warnings are errors)
+cargo fmt --check                   # Check formatting
+cargo fmt                           # Auto-fix formatting
+```
+
 ## Code Conventions
 
 - Use `anyhow::Result` for error handling, with `.context()` for meaningful error messages.

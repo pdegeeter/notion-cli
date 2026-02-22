@@ -14,6 +14,16 @@ cargo install --path .             # Install binary globally as `notion`
 
 Tests **must** run with `--test-threads=1` because config tests mutate environment variables.
 
+### Lint & Format
+
+```bash
+cargo clippy -- -D warnings         # Lint (warnings are errors)
+cargo fmt --check                   # Check formatting
+cargo fmt                           # Auto-fix formatting
+```
+
+All clippy warnings **must** be resolved. The CI will fail on any warning.
+
 ### Coverage
 
 ```bash
@@ -71,6 +81,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/). Format: `<type
 Types: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `ci`, `chore`, `perf`, `build`
 
 Examples:
+
 - `feat(page): add duplicate command`
 - `fix(client): handle 502 responses`
 - `docs(readme): update installation instructions`
