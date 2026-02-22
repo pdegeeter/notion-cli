@@ -21,12 +21,12 @@ impl Config {
 
     pub fn load() -> Result<Self> {
         // First check env var
-        if let Ok(token) = std::env::var("NOTION_API_TOKEN") {
-            if !token.is_empty() {
-                return Ok(Config {
-                    api_token: Some(token),
-                });
-            }
+        if let Ok(token) = std::env::var("NOTION_API_TOKEN")
+            && !token.is_empty()
+        {
+            return Ok(Config {
+                api_token: Some(token),
+            });
         }
 
         // Then check config file

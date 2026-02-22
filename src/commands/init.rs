@@ -11,21 +11,21 @@ pub async fn run() -> Result<()> {
 
     let mut config = Config::load()?;
 
-    if let Some(ref token) = config.api_token {
-        if !token.is_empty() {
-            print_info(&format!(
-                "Existing token found ({}...)",
-                &token[..token.len().min(8)]
-            ));
+    if let Some(ref token) = config.api_token
+        && !token.is_empty()
+    {
+        print_info(&format!(
+            "Existing token found ({}...)",
+            &token[..token.len().min(8)]
+        ));
 
-            let keep = Confirm::new()
-                .with_prompt("Keep existing token?")
-                .default(true)
-                .interact()?;
+        let keep = Confirm::new()
+            .with_prompt("Keep existing token?")
+            .default(true)
+            .interact()?;
 
-            if !keep {
-                config.api_token = None;
-            }
+        if !keep {
+            config.api_token = None;
         }
     }
 
