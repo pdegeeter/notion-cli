@@ -31,10 +31,10 @@ All HTTP interactions are tested with [mockito](https://docs.rs/mockito) to avoi
 
 ### Coverage
 
-Line coverage must stay at or above **90%**. Run coverage locally with:
+Line coverage must stay at or above **91%**. Run coverage locally with:
 
 ```bash
-cargo llvm-cov --fail-under-lines 90 --text -- --test-threads=1
+cargo llvm-cov --fail-under-lines 91 --text -- --test-threads=1
 ```
 
 The CI will fail if coverage drops below this threshold.
