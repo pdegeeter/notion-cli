@@ -112,3 +112,16 @@ fn test_config_path_ends_with_expected() {
     let path = Config::config_path().unwrap();
     assert!(path.ends_with("notion-cli/config.toml"));
 }
+
+#[test]
+fn test_config_dir_returns_path() {
+    let dir = Config::config_dir().unwrap();
+    assert!(dir.ends_with("notion-cli"));
+}
+
+#[test]
+fn test_config_path_returns_toml_path() {
+    let path = Config::config_path().unwrap();
+    assert!(path.to_str().unwrap().contains("notion-cli"));
+    assert!(path.to_str().unwrap().ends_with("config.toml"));
+}

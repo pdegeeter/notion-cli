@@ -365,3 +365,65 @@ fn test_mime_from_filename() {
     assert_eq!(super::mime_from_filename("unknown.xyz"), "application/octet-stream");
     assert_eq!(super::mime_from_filename("IMAGE.JPG"), "image/jpeg");
 }
+
+#[test]
+fn test_mime_from_filename_all_types() {
+    assert_eq!(super::mime_from_filename("a.gif"), "image/gif");
+    assert_eq!(super::mime_from_filename("a.webp"), "image/webp");
+    assert_eq!(super::mime_from_filename("a.svg"), "image/svg+xml");
+    assert_eq!(super::mime_from_filename("a.html"), "text/html");
+    assert_eq!(super::mime_from_filename("a.htm"), "text/html");
+    assert_eq!(super::mime_from_filename("a.mp4"), "video/mp4");
+    assert_eq!(super::mime_from_filename("a.mp3"), "audio/mpeg");
+    assert_eq!(super::mime_from_filename("a.zip"), "application/zip");
+    assert_eq!(super::mime_from_filename("a.doc"), "application/msword");
+    assert_eq!(
+        super::mime_from_filename("a.docx"),
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+    assert_eq!(super::mime_from_filename("a.xls"), "application/vnd.ms-excel");
+    assert_eq!(
+        super::mime_from_filename("a.xlsx"),
+        "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    );
+    assert_eq!(super::mime_from_filename("a.json"), "application/json");
+    assert_eq!(super::mime_from_filename("a.txt"), "text/plain");
+    assert_eq!(super::mime_from_filename("a.jpeg"), "image/jpeg");
+}
+
+#[tokio::test]
+async fn test_post_multipart_file_not_found() {
+    let server = mockito::Server::new_async().await;
+    let client = NotionClient::with_base_url("token", &server.url()).unwrap();
+    let result = client
+        .post_multipart("/v1/file_uploads/fu-1/send", std::path::Path::new("/nonexistent/file.txt"), None)
+        .await;
+
+    assert!(result.is_err());
+    assert!(result.unwrap_err().to_string().contains("Failed to read file"));
+}
+
+#[tokio::test]
+async fn test_post_multipart_with_part_number() {
+    let mut server = mockito::Server::new_async().await;
+    let mock = server
+        .mock("POST", "/v1/file_uploads/fu-1/send")
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"id":"fu-1","status":"uploaded"}"#)
+        .create_async()
+        .await;
+
+    let dir = tempfile::tempdir().unwrap();
+    let file_path = dir.path().join("chunk.bin");
+    tokio::fs::write(&file_path, b"chunk data").await.unwrap();
+
+    let client = NotionClient::with_base_url("token", &server.url()).unwrap();
+    let result = client
+        .post_multipart("/v1/file_uploads/fu-1/send", &file_path, Some(2))
+        .await
+        .unwrap();
+
+    assert_eq!(result["id"], "fu-1");
+    mock.assert_async().await;
+}

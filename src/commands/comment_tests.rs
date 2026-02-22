@@ -43,3 +43,47 @@ async fn test_create() {
     assert!(result.is_ok());
     mock.assert_async().await;
 }
+
+#[tokio::test]
+async fn test_list_with_page_size() {
+    let mut server = mockito::Server::new_async().await;
+    let mock = server
+        .mock("GET", "/v1/comments")
+        .match_query(mockito::Matcher::AllOf(vec![
+            mockito::Matcher::UrlEncoded("block_id".into(), "block-1".into()),
+            mockito::Matcher::UrlEncoded("page_size".into(), "10".into()),
+        ]))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"results":[],"has_more":false}"#)
+        .create_async()
+        .await;
+
+    let client = NotionClient::with_base_url("token", &server.url()).unwrap();
+    let result = list(&client, "block-1", Some(10), None, &OutputFormat::Raw).await;
+
+    assert!(result.is_ok());
+    mock.assert_async().await;
+}
+
+#[tokio::test]
+async fn test_list_with_start_cursor() {
+    let mut server = mockito::Server::new_async().await;
+    let mock = server
+        .mock("GET", "/v1/comments")
+        .match_query(mockito::Matcher::AllOf(vec![
+            mockito::Matcher::UrlEncoded("block_id".into(), "block-1".into()),
+            mockito::Matcher::UrlEncoded("start_cursor".into(), "cursor-abc".into()),
+        ]))
+        .with_status(200)
+        .with_header("content-type", "application/json")
+        .with_body(r#"{"results":[],"has_more":false}"#)
+        .create_async()
+        .await;
+
+    let client = NotionClient::with_base_url("token", &server.url()).unwrap();
+    let result = list(&client, "block-1", None, Some("cursor-abc"), &OutputFormat::Raw).await;
+
+    assert!(result.is_ok());
+    mock.assert_async().await;
+}

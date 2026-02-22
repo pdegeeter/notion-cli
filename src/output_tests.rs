@@ -70,3 +70,39 @@ fn test_print_result_handles_nested_json() {
     assert!(pretty.contains("\"results\""));
     assert!(pretty.contains("\"has_more\""));
 }
+
+#[test]
+fn test_print_result_raw_format() {
+    let value = json!({"key": "value"});
+    let result = print_result(&value, &OutputFormat::Raw);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_print_result_json_format() {
+    let value = json!({"key": "value"});
+    let result = print_result(&value, &OutputFormat::Json);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_print_result_pretty_format() {
+    let value = json!({"key": "value"});
+    let result = print_result(&value, &OutputFormat::Pretty);
+    assert!(result.is_ok());
+}
+
+#[test]
+fn test_print_error_does_not_panic() {
+    print_error("test error message");
+}
+
+#[test]
+fn test_print_success_does_not_panic() {
+    print_success("test success message");
+}
+
+#[test]
+fn test_print_info_does_not_panic() {
+    print_info("test info message");
+}
