@@ -53,16 +53,17 @@ The CLI must be configured with a valid Notion API token:
 
 ## Command Groups
 
-| Group      | Reference                                            |
-| ---------- | ---------------------------------------------------- |
-| search     | [references/search.md](references/search.md)         |
-| user       | [references/user.md](references/user.md)             |
-| page       | [references/page.md](references/page.md)             |
-| block      | [references/block.md](references/block.md)           |
-| comment    | [references/comment.md](references/comment.md)       |
-| db         | [references/database.md](references/database.md)     |
-| ds         | [references/datasource.md](references/datasource.md) |
-| formatting | [references/formatting.md](references/formatting.md) |
+| Group       | Reference                                              |
+| ----------- | ------------------------------------------------------ |
+| search      | [references/search.md](references/search.md)           |
+| user        | [references/user.md](references/user.md)               |
+| page        | [references/page.md](references/page.md)               |
+| block       | [references/block.md](references/block.md)             |
+| comment     | [references/comment.md](references/comment.md)         |
+| db          | [references/database.md](references/database.md)       |
+| ds          | [references/datasource.md](references/datasource.md)   |
+| file-upload | [references/file-upload.md](references/file-upload.md) |
+| formatting  | [references/formatting.md](references/formatting.md)   |
 
 ## Examples
 

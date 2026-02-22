@@ -7,6 +7,7 @@ use anyhow::Result;
 use clap::{CommandFactory, Parser, Subcommand};
 use clap_complete::Shell;
 use output::OutputFormat;
+use std::path::PathBuf;
 
 /// Notion CLI - Interact with the Notion API from the command line
 #[derive(Parser)]
@@ -80,6 +81,10 @@ enum Commands {
     /// Data source operations
     #[command(subcommand)]
     Ds(DsCommands),
+
+    /// File upload operations
+    #[command(name = "file-upload", subcommand)]
+    FileUpload(FileUploadCommands),
 
     /// Generate shell completions
     #[command(arg_required_else_help = true)]
@@ -328,6 +333,80 @@ enum DsCommands {
     },
 }
 
+#[derive(Subcommand)]
+enum FileUploadCommands {
+    /// Create a file upload session
+    #[command(arg_required_else_help = true)]
+    Create {
+        /// Upload mode: single_part, multi_part, or external_url
+        #[arg(long)]
+        mode: String,
+
+        /// Filename for the upload
+        #[arg(long)]
+        filename: Option<String>,
+
+        /// MIME content type
+        #[arg(long)]
+        content_type: Option<String>,
+
+        /// Number of parts (multi_part mode)
+        #[arg(long)]
+        number_of_parts: Option<u32>,
+
+        /// External URL (external_url mode)
+        #[arg(long)]
+        external_url: Option<String>,
+    },
+
+    /// Send a file to an upload session
+    #[command(arg_required_else_help = true)]
+    Send {
+        /// File upload ID
+        id: String,
+
+        /// Path to the file to upload
+        #[arg(long)]
+        file: PathBuf,
+
+        /// Part number (multi_part mode)
+        #[arg(long)]
+        part_number: Option<u32>,
+    },
+
+    /// Complete a file upload
+    #[command(arg_required_else_help = true)]
+    Complete {
+        /// File upload ID
+        id: String,
+    },
+
+    /// Retrieve a file upload
+    #[command(arg_required_else_help = true)]
+    Get {
+        /// File upload ID
+        id: String,
+    },
+
+    /// List file uploads
+    List {
+        /// Filter by status
+        #[arg(long)]
+        status: Option<String>,
+    },
+
+    /// Upload a file in one step (create + send + complete)
+    #[command(arg_required_else_help = true)]
+    Upload {
+        /// Path to the file to upload
+        file: PathBuf,
+
+        /// MIME content type
+        #[arg(long)]
+        content_type: Option<String>,
+    },
+}
+
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
@@ -369,6 +448,57 @@ async fn main() -> Result<()> {
 
     match &cli.command {
         Commands::Init | Commands::Completions { .. } | Commands::Manpage => unreachable!(),
+
+        Commands::FileUpload(cmd) => match cmd {
+            FileUploadCommands::Create {
+                mode,
+                filename,
+                content_type,
+                number_of_parts,
+                external_url,
+            } => {
+                commands::file_upload::create(
+                    &notion,
+                    mode,
+                    filename.as_deref(),
+                    content_type.as_deref(),
+                    *number_of_parts,
+                    external_url.as_deref(),
+                    &format,
+                )
+                .await
+            }
+            FileUploadCommands::Send {
+                id,
+                file,
+                part_number,
+            } => {
+                commands::file_upload::send(&notion, id, file, *part_number, &format).await
+            }
+            FileUploadCommands::Complete { id } => {
+                commands::file_upload::complete(&notion, id, &format).await
+            }
+            FileUploadCommands::Get { id } => {
+                commands::file_upload::get(&notion, id, &format).await
+            }
+            FileUploadCommands::List { status } => {
+                commands::file_upload::list(
+                    &notion,
+                    status.as_deref(),
+                    cli.page_size,
+                    cli.start_cursor.as_deref(),
+                    &format,
+                )
+                .await
+            }
+            FileUploadCommands::Upload {
+                file,
+                content_type,
+            } => {
+                commands::file_upload::upload(&notion, file, content_type.as_deref(), &format)
+                    .await
+            }
+        },
 
         Commands::Search { query, filter } => {
             commands::search::run(
@@ -986,5 +1116,167 @@ mod tests {
     fn test_unknown_command_fails() {
         let result = try_parse(&["notion", "foobar"]);
         assert!(result.is_err());
+    }
+
+    #[test]
+    fn test_file_upload_create() {
+        let cli = parse(&[
+            "notion",
+            "file-upload",
+            "create",
+            "--mode",
+            "single_part",
+            "--filename",
+            "test.png",
+        ]);
+        if let Commands::FileUpload(FileUploadCommands::Create {
+            mode,
+            filename,
+            content_type,
+            number_of_parts,
+            external_url,
+        }) = &cli.command
+        {
+            assert_eq!(mode, "single_part");
+            assert_eq!(filename.as_deref(), Some("test.png"));
+            assert!(content_type.is_none());
+            assert!(number_of_parts.is_none());
+            assert!(external_url.is_none());
+        } else {
+            panic!("Expected FileUpload Create command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_send() {
+        let cli = parse(&[
+            "notion",
+            "file-upload",
+            "send",
+            "fu-1",
+            "--file",
+            "/tmp/test.png",
+        ]);
+        if let Commands::FileUpload(FileUploadCommands::Send {
+            id,
+            file,
+            part_number,
+        }) = &cli.command
+        {
+            assert_eq!(id, "fu-1");
+            assert_eq!(file, &PathBuf::from("/tmp/test.png"));
+            assert!(part_number.is_none());
+        } else {
+            panic!("Expected FileUpload Send command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_send_with_part_number() {
+        let cli = parse(&[
+            "notion",
+            "file-upload",
+            "send",
+            "fu-1",
+            "--file",
+            "/tmp/test.png",
+            "--part-number",
+            "2",
+        ]);
+        if let Commands::FileUpload(FileUploadCommands::Send {
+            id,
+            file,
+            part_number,
+        }) = &cli.command
+        {
+            assert_eq!(id, "fu-1");
+            assert_eq!(file, &PathBuf::from("/tmp/test.png"));
+            assert_eq!(*part_number, Some(2));
+        } else {
+            panic!("Expected FileUpload Send command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_complete() {
+        let cli = parse(&["notion", "file-upload", "complete", "fu-1"]);
+        if let Commands::FileUpload(FileUploadCommands::Complete { id }) = &cli.command {
+            assert_eq!(id, "fu-1");
+        } else {
+            panic!("Expected FileUpload Complete command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_get() {
+        let cli = parse(&["notion", "file-upload", "get", "fu-1"]);
+        if let Commands::FileUpload(FileUploadCommands::Get { id }) = &cli.command {
+            assert_eq!(id, "fu-1");
+        } else {
+            panic!("Expected FileUpload Get command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_list() {
+        let cli = parse(&[
+            "notion",
+            "file-upload",
+            "list",
+            "--status",
+            "upload_completed",
+        ]);
+        if let Commands::FileUpload(FileUploadCommands::List { status }) = &cli.command {
+            assert_eq!(status.as_deref(), Some("upload_completed"));
+        } else {
+            panic!("Expected FileUpload List command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_list_no_filter() {
+        let cli = parse(&["notion", "file-upload", "list"]);
+        if let Commands::FileUpload(FileUploadCommands::List { status }) = &cli.command {
+            assert!(status.is_none());
+        } else {
+            panic!("Expected FileUpload List command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_upload() {
+        let cli = parse(&["notion", "file-upload", "upload", "/tmp/test.png"]);
+        if let Commands::FileUpload(FileUploadCommands::Upload {
+            file,
+            content_type,
+        }) = &cli.command
+        {
+            assert_eq!(file, &PathBuf::from("/tmp/test.png"));
+            assert!(content_type.is_none());
+        } else {
+            panic!("Expected FileUpload Upload command");
+        }
+    }
+
+    #[test]
+    fn test_file_upload_upload_with_content_type() {
+        let cli = parse(&[
+            "notion",
+            "file-upload",
+            "upload",
+            "/tmp/test.png",
+            "--content-type",
+            "image/png",
+        ]);
+        if let Commands::FileUpload(FileUploadCommands::Upload {
+            file,
+            content_type,
+        }) = &cli.command
+        {
+            assert_eq!(file, &PathBuf::from("/tmp/test.png"));
+            assert_eq!(content_type.as_deref(), Some("image/png"));
+        } else {
+            panic!("Expected FileUpload Upload command");
+        }
     }
 }
