@@ -95,3 +95,7 @@ pub async fn templates(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "datasource_tests.rs"]
+mod tests;

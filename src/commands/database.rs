@@ -13,3 +13,7 @@ pub async fn get(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "database_tests.rs"]
+mod tests;

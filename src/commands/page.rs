@@ -118,3 +118,7 @@ pub async fn property(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "page_tests.rs"]
+mod tests;

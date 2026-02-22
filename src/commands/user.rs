@@ -36,3 +36,7 @@ pub async fn list(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "user_tests.rs"]
+mod tests;

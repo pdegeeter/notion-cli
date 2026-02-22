@@ -89,3 +89,7 @@ pub async fn delete(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "block_tests.rs"]
+mod tests;

@@ -35,3 +35,7 @@ pub async fn run(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "search_tests.rs"]
+mod tests;

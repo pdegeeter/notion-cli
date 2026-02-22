@@ -44,3 +44,7 @@ pub async fn create(
     print_result(&result, format)?;
     Ok(())
 }
+
+#[cfg(test)]
+#[path = "comment_tests.rs"]
+mod tests;

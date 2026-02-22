@@ -18,12 +18,24 @@ jobs:
 
       - uses: dtolnay/rust-toolchain@stable
         with:
-          components: clippy
+          components: clippy, llvm-tools-preview
 
       - uses: Swatinem/rust-cache@v2
+
+      - name: Install cargo-llvm-cov
+        uses: taiki-e/install-action@cargo-llvm-cov
 
       - name: Lint
         run: cargo clippy -- -D warnings
 
-      - name: Test
-        run: cargo test -- --test-threads=1
+      - name: Test with coverage
+        run: cargo llvm-cov --fail-under-lines 90 --lcov --output-path lcov.info --ignore-filename-regex 'commands/init\.rs' -- --test-threads=1
+
+      - name: Coverage summary
+        run: cargo llvm-cov report --summary-only --ignore-filename-regex 'commands/init\.rs' -- --test-threads=1
+
+      - name: Post coverage comment on PR
+        uses: romeovs/lcov-reporter-action@v0.4.0
+        with:
+          lcov-file: lcov.info
+          github-token: ${{ secrets.GITHUB_TOKEN }}
