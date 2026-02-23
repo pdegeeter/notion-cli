@@ -1,8 +1,11 @@
 [package]
 name = "notion-cli"
-version = "0.1.0"
+version = "0.2.0"
 edition = "2024"
-description = "A CLI tool for the Notion API"
+description = "A fast, feature-rich CLI for the Notion API — manage pages, databases, blocks, users, comments and more from your terminal."
+license = "MIT"
+keywords = ["notion", "cli", "api", "productivity", "terminal"]
+categories = ["command-line-utilities"]
 
 [[bin]]
 name = "notion"
