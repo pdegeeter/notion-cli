@@ -74,6 +74,14 @@ To add a new command: add variant to the relevant enum in `main.rs`, add the han
 - Config tests use `tempfile` for filesystem isolation
 - CLI parsing tests use `Cli::parse_from()` / `Cli::try_parse_from()`
 
+## Version bump
+
+When bumping the version, update the following files:
+
+1. **`Cargo.toml`** — `version` field in `[package]`
+2. **`skills/notion/SKILL.md`** — version in the header
+4. **`Cargo.lock`** — regenerated automatically by `cargo build`
+
 ## Commit conventions
 
 Use [Conventional Commits](https://www.conventionalcommits.org/). Format: `<type>(<scope>): <description>`

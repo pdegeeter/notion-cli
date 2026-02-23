@@ -6,6 +6,13 @@ description: >
   pages, blocks, databases, data sources, comments, or users.
   Also trigger for Notion workspace setup, shell completions, or any task
   involving the Notion API.
+  version: 0.2.0
+  license: MIT
+  metadata:
+    author: Philippe Degeeter <philippe@degeeter.fr>
+    category: notion-cli
+    tags: rust, cli, productivity, terminal, command-line, notion, notion-api
+  allowed-tools: Bash(notion:*)
 ---
 
 # Notion CLI Skill
