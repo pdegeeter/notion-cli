@@ -1,6 +1,6 @@
 # Data Source Commands
 
-## `notion ds get <id>`
+## `notion datasource get <id>`
 
 Retrieve a data source.
 
@@ -11,11 +11,11 @@ Retrieve a data source.
 | `<id>`   | yes      | Data Source ID |
 
 ```bash
-notion ds get <ds-id>
-notion --raw ds get <ds-id> | jq '.title'
+notion datasource get <ds-id>
+notion --raw datasource get <ds-id> | jq '.title'
 ```
 
-## `notion ds create`
+## `notion datasource create`
 
 Create a data source.
 
@@ -31,17 +31,17 @@ Supports `--dry-run`.
 
 ```bash
 # Create a simple data source
-notion ds create --parent <page-id> --title "Tasks"
+notion datasource create --parent <page-id> --title "Tasks"
 
 # Create with property schema
-notion ds create --parent <page-id> --title "Inventory" \
+notion datasource create --parent <page-id> --title "Inventory" \
   --properties '{"Name":{"title":{}},"Count":{"number":{}},"Status":{"select":{"options":[{"name":"In Stock"},{"name":"Out"}]}}}'
 
 # Preview
-notion --dry-run ds create --parent <page-id> --title "Test"
+notion --dry-run datasource create --parent <page-id> --title "Test"
 ```
 
-## `notion ds update <id>`
+## `notion datasource update <id>`
 
 Update a data source.
 
@@ -55,11 +55,11 @@ Update a data source.
 Supports `--dry-run`.
 
 ```bash
-notion ds update <ds-id> \
+notion datasource update <ds-id> \
   --data '{"title":[{"type":"text","text":{"content":"Renamed DS"}}]}'
 ```
 
-## `notion ds query <id>`
+## `notion datasource query <id>`
 
 Query a data source.
 
@@ -75,27 +75,27 @@ Supports `--page-size`, `--start-cursor`, and `--dry-run`.
 
 ```bash
 # Query all records
-notion ds query <ds-id>
+notion datasource query <ds-id>
 
 # Query with filter
-notion ds query <ds-id> \
+notion datasource query <ds-id> \
   --filter '{"property":"Status","select":{"equals":"Done"}}'
 
 # Query with sort
-notion ds query <ds-id> \
+notion datasource query <ds-id> \
   --sorts '[{"property":"Created","direction":"descending"}]'
 
 # Combined filter + sort + pagination
-notion ds query <ds-id> \
+notion datasource query <ds-id> \
   --filter '{"property":"Priority","select":{"equals":"High"}}' \
   --sorts '[{"property":"Due Date","direction":"ascending"}]' \
   --page-size 50
 
 # Raw output for scripting
-notion --raw ds query <ds-id> | jq '.results[].properties.Name.title[0].plain_text'
+notion --raw datasource query <ds-id> | jq '.results[].properties.Name.title[0].plain_text'
 ```
 
-## `notion ds templates <id>`
+## `notion datasource templates <id>`
 
 List data source templates.
 
@@ -106,6 +106,6 @@ List data source templates.
 | `<id>`   | yes      | Data Source ID |
 
 ```bash
-notion ds templates <ds-id>
-notion --raw ds templates <ds-id> | jq '.results[].id'
+notion datasource templates <ds-id>
+notion --raw datasource templates <ds-id> | jq '.results[].id'
 ```

@@ -60,8 +60,8 @@ The CLI must be configured with a valid Notion API token:
 | page        | [references/page.md](references/page.md)               |
 | block       | [references/block.md](references/block.md)             |
 | comment     | [references/comment.md](references/comment.md)         |
-| db          | [references/database.md](references/database.md)       |
-| ds          | [references/datasource.md](references/datasource.md)   |
+| database    | [references/database.md](references/database.md)       |
+| datasource  | [references/datasource.md](references/datasource.md)   |
 | file-upload | [references/file-upload.md](references/file-upload.md) |
 | formatting  | [references/formatting.md](references/formatting.md)   |
 
@@ -83,7 +83,7 @@ notion block append <page-id> \
   --children '[{"object":"block","type":"paragraph","paragraph":{"rich_text":[{"type":"text","text":{"content":"Hello"}}]}}]'
 
 # Query a data source with filter and sort
-notion ds query <ds-id> \
+notion datasource query <ds-id> \
   --filter '{"property":"Status","select":{"equals":"Done"}}' \
   --sorts '[{"property":"Created","direction":"descending"}]'
 

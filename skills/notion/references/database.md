@@ -1,6 +1,6 @@
 # Database Commands
 
-## `notion db get <id>`
+## `notion database get <id>`
 
 Retrieve database metadata (schema, title, properties).
 
@@ -11,7 +11,7 @@ Retrieve database metadata (schema, title, properties).
 | `<id>`   | yes      | Database ID |
 
 ```bash
-notion db get <db-id>
-notion --raw db get <db-id> | jq '.properties | keys'
-notion --raw db get <db-id> | jq '.title[0].plain_text'
+notion database get <db-id>
+notion --raw database get <db-id> | jq '.properties | keys'
+notion --raw database get <db-id> | jq '.title[0].plain_text'
 ```

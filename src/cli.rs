@@ -72,11 +72,11 @@ pub enum Commands {
 
     /// Database operations
     #[command(subcommand)]
-    Db(DbCommands),
+    Database(DatabaseCommands),
 
     /// Data source operations
     #[command(subcommand)]
-    Ds(DsCommands),
+    Datasource(DatasourceCommands),
 
     /// File upload operations
     #[command(name = "file-upload", subcommand)]
@@ -261,7 +261,7 @@ pub enum CommentCommands {
 }
 
 #[derive(Subcommand)]
-pub enum DbCommands {
+pub enum DatabaseCommands {
     /// Retrieve database metadata
     #[command(arg_required_else_help = true)]
     Get {
@@ -271,7 +271,7 @@ pub enum DbCommands {
 }
 
 #[derive(Subcommand)]
-pub enum DsCommands {
+pub enum DatasourceCommands {
     /// Retrieve a data source
     #[command(arg_required_else_help = true)]
     Get {

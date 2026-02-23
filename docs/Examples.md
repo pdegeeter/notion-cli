@@ -106,10 +106,10 @@ done
 
 ```bash
 # Get database schema
-notion db get database-id
+notion database get database-id
 
 # Query a data source with filters
-notion ds query ds-id \
+notion datasource query ds-id \
   --filter '{"property":"Status","select":{"equals":"Done"}}' \
   --sorts '[{"property":"Created","direction":"descending"}]' \
   --page-size 50

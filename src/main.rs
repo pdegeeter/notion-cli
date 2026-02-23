@@ -207,13 +207,13 @@ pub async fn run_with_client(
             }
         },
 
-        Commands::Db(cmd) => match cmd {
-            DbCommands::Get { id } => commands::database::get(notion, id, format).await,
+        Commands::Database(cmd) => match cmd {
+            DatabaseCommands::Get { id } => commands::database::get(notion, id, format).await,
         },
 
-        Commands::Ds(cmd) => match cmd {
-            DsCommands::Get { id } => commands::datasource::get(notion, id, format).await,
-            DsCommands::Create {
+        Commands::Datasource(cmd) => match cmd {
+            DatasourceCommands::Get { id } => commands::datasource::get(notion, id, format).await,
+            DatasourceCommands::Create {
                 parent,
                 title,
                 properties,
@@ -221,10 +221,10 @@ pub async fn run_with_client(
                 commands::datasource::create(notion, parent, title, properties.as_deref(), format)
                     .await
             }
-            DsCommands::Update { id, data } => {
+            DatasourceCommands::Update { id, data } => {
                 commands::datasource::update(notion, id, data, format).await
             }
-            DsCommands::Query { id, filter, sorts } => {
+            DatasourceCommands::Query { id, filter, sorts } => {
                 commands::datasource::query(
                     notion,
                     id,
@@ -236,7 +236,7 @@ pub async fn run_with_client(
                 )
                 .await
             }
-            DsCommands::Templates { id } => {
+            DatasourceCommands::Templates { id } => {
                 commands::datasource::templates(notion, id, format).await
             }
         },

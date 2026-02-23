@@ -64,12 +64,12 @@ notion <command> [options]
 | `notion block delete <id>`                           | Delete a block                                     |
 | `notion comment list --block-id <id>`                | List comments                                      |
 | `notion comment create --page-id <id> --text <text>` | Create a comment                                   |
-| `notion db get <id>`                                 | Retrieve database metadata                         |
-| `notion ds get <id>`                                 | Retrieve a data source                             |
-| `notion ds create`                                   | Create a data source                               |
-| `notion ds update <id>`                              | Update a data source                               |
-| `notion ds query <id>`                               | Query a data source                                |
-| `notion ds templates <id>`                           | List data source templates                         |
+| `notion database get <id>`                           | Retrieve database metadata                         |
+| `notion datasource get <id>`                         | Retrieve a data source                             |
+| `notion datasource create`                           | Create a data source                               |
+| `notion datasource update <id>`                      | Update a data source                               |
+| `notion datasource query <id>`                       | Query a data source                                |
+| `notion datasource templates <id>`                   | List data source templates                         |
 | `notion file-upload create --mode <mode>`            | Create a file upload session                       |
 | `notion file-upload send <id> --file <path>`         | Send a file to an upload session                   |
 | `notion file-upload complete <id>`                   | Complete a file upload                             |
