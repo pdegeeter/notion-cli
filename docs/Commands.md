@@ -224,35 +224,35 @@ notion comment create --page-id <id> --text "Your comment"
 
 ---
 
-## `notion db`
+## `notion database`
 
-### `notion db get <id>`
+### `notion database get <id>`
 
 Get database metadata and schema.
 
 ```bash
-notion db get <database-id>
+notion database get <database-id>
 ```
 
 ---
 
-## `notion ds` (Data Sources)
+## `notion datasource` (Data Sources)
 
-### `notion ds get <id>`
+### `notion datasource get <id>`
 
 Get a data source.
 
 ```bash
-notion ds get <ds-id>
+notion datasource get <ds-id>
 ```
 
-### `notion ds create`
+### `notion datasource create`
 
 Create a new data source.
 
 ```bash
-notion ds create --parent <page-id> --title "My Data Source"
-notion ds create --parent <page-id> --title "My DB" --properties '<json>'
+notion datasource create --parent <page-id> --title "My Data Source"
+notion datasource create --parent <page-id> --title "My DB" --properties '<json>'
 ```
 
 | Option | Description |
@@ -261,21 +261,21 @@ notion ds create --parent <page-id> --title "My DB" --properties '<json>'
 | `--title` | Title (required) |
 | `--properties` | Property schema as JSON |
 
-### `notion ds update <id>`
+### `notion datasource update <id>`
 
 Update a data source.
 
 ```bash
-notion ds update <ds-id> --data '<json>'
+notion datasource update <ds-id> --data '<json>'
 ```
 
-### `notion ds query <id>`
+### `notion datasource query <id>`
 
 Query a data source with filters and sorting.
 
 ```bash
-notion ds query <ds-id>
-notion ds query <ds-id> --filter '<json>' --sorts '<json>'
+notion datasource query <ds-id>
+notion datasource query <ds-id> --filter '<json>' --sorts '<json>'
 ```
 
 | Option | Description |
@@ -283,12 +283,12 @@ notion ds query <ds-id> --filter '<json>' --sorts '<json>'
 | `--filter` | Filter as JSON |
 | `--sorts` | Sort array as JSON |
 
-### `notion ds templates <id>`
+### `notion datasource templates <id>`
 
 List templates for a data source.
 
 ```bash
-notion ds templates <ds-id>
+notion datasource templates <ds-id>
 ```
 
 ---
