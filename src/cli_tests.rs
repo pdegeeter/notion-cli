@@ -308,30 +308,30 @@ fn test_comment_create() {
 }
 
 #[test]
-fn test_db_get() {
-    let cli = parse(&["notion", "db", "get", "db-123"]);
-    if let Commands::Db(DbCommands::Get { id }) = &cli.command {
+fn test_database_get() {
+    let cli = parse(&["notion", "database", "get", "db-123"]);
+    if let Commands::Database(DatabaseCommands::Get { id }) = &cli.command {
         assert_eq!(id, "db-123");
     } else {
-        panic!("Expected Db Get command");
+        panic!("Expected Database Get command");
     }
 }
 
 #[test]
-fn test_ds_get() {
-    let cli = parse(&["notion", "ds", "get", "ds-1"]);
-    if let Commands::Ds(DsCommands::Get { id }) = &cli.command {
+fn test_datasource_get() {
+    let cli = parse(&["notion", "datasource", "get", "ds-1"]);
+    if let Commands::Datasource(DatasourceCommands::Get { id }) = &cli.command {
         assert_eq!(id, "ds-1");
     } else {
-        panic!("Expected Ds Get command");
+        panic!("Expected Datasource Get command");
     }
 }
 
 #[test]
-fn test_ds_query_with_filter() {
+fn test_datasource_query_with_filter() {
     let cli = parse(&[
         "notion",
-        "ds",
+        "datasource",
         "query",
         "ds-1",
         "--filter",
@@ -339,21 +339,27 @@ fn test_ds_query_with_filter() {
         "--sorts",
         r#"[{"property":"Created","direction":"descending"}]"#,
     ]);
-    if let Commands::Ds(DsCommands::Query { id, filter, sorts }) = &cli.command {
+    if let Commands::Datasource(DatasourceCommands::Query { id, filter, sorts }) = &cli.command {
         assert_eq!(id, "ds-1");
         assert!(filter.is_some());
         assert!(sorts.is_some());
     } else {
-        panic!("Expected Ds Query command");
+        panic!("Expected Datasource Query command");
     }
 }
 
 #[test]
-fn test_ds_create() {
+fn test_datasource_create() {
     let cli = parse(&[
-        "notion", "ds", "create", "--parent", "page-1", "--title", "My DB",
+        "notion",
+        "datasource",
+        "create",
+        "--parent",
+        "page-1",
+        "--title",
+        "My DB",
     ]);
-    if let Commands::Ds(DsCommands::Create {
+    if let Commands::Datasource(DatasourceCommands::Create {
         parent,
         title,
         properties,
@@ -363,17 +369,17 @@ fn test_ds_create() {
         assert_eq!(title, "My DB");
         assert!(properties.is_none());
     } else {
-        panic!("Expected Ds Create command");
+        panic!("Expected Datasource Create command");
     }
 }
 
 #[test]
-fn test_ds_templates() {
-    let cli = parse(&["notion", "ds", "templates", "ds-1"]);
-    if let Commands::Ds(DsCommands::Templates { id }) = &cli.command {
+fn test_datasource_templates() {
+    let cli = parse(&["notion", "datasource", "templates", "ds-1"]);
+    if let Commands::Datasource(DatasourceCommands::Templates { id }) = &cli.command {
         assert_eq!(id, "ds-1");
     } else {
-        panic!("Expected Ds Templates command");
+        panic!("Expected Datasource Templates command");
     }
 }
 
